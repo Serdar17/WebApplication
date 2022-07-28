@@ -1,0 +1,89 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using WebApplication4.Areas.Identity.Data
+@*@model IEnumerable<ApplicationUser>*@
+@model IList<ApplicationUserViewModel>
+
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@{
+    if (User.Identity.IsAuthenticated)
+    {
+        <div class="container p-3">
+            <div class="row pt-4">
+                <div class="col-6"><h2>Таблица Пользователей</h2></div>
+                <div class="col-6 text-end">
+                    <div class="btn-group" role="group" aria-label="Basic example">                    
+                        <a asp-controller="Home" asp-action="Block" class="btn btn-secondary"><i class="bi bi-lock"></i>Блок</a>
+                        <button type="button" class="btn btn-secondary"><i class="bi bi-unlock"></i>Разблокировать</button>
+                        <button type="submit" name="Delete" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Удалить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
+    }
+    //else
+    //{
+    //    <div class="container p-3">
+    //        <div class="row pt-4">
+    //            <div class="col-6"><h2>Таблица Пользователей</h2></div>
+    //            <div class="col-6 text-end">
+    //                <div class="btn-group" role="group" aria-label="Basic example">
+    //                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-lock"></i><a class="nav-link text-dark" href="/Home/Block/"></a>Блок</button>
+    //                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-unlock"></i>Разблокировать</button>
+    //                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-x-circle"></i>Удалить</button>
+    //                </div>
+    //            </div>
+    //        </div>
+    //    </div>
+    //    <br/>    
+    //}
+}
+<form asp-controller="Home" asp-action="DeleteUser" method="post">
+    <table class="table table-hover">
+    <thead>
+    <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Имя пользователя</th>
+        <th scope="col">Email</th>
+        <th scope="col">Дата регистрации</th>
+        <th scope="col">Дата последнего входа</th>
+        <th scope="col">В сети</th>
+        <th scope="col">
+            <input class="form-check-input" onclick="selectAll(this)" type="checkbox" name="allCheck" id="selectedAll">Выбрать все
+        </th>
+    </tr>
+    </thead>
+        <tbody>
+            @foreach(var viewModel in Model)
+            {
+                <tr class="table-active">
+                    <th scope="row" >
+                        <label asp-for="@viewModel.User.Id">@viewModel.User.Id</label>
+                    </th>
+                    <td><label asp-for="@viewModel.User.Name">@viewModel.User.Name</label></td>
+                    <td>@Html.DisplayFor(item => viewModel.User.Email)</td>
+                    <td>@Html.DisplayFor(item => viewModel.User.CreateDateTime)</td>
+                    <td>@Html.DisplayFor(item => viewModel.User.LastLoginDateTime)</td>
+                    <td><label asp-for="@viewModel.User.IsOnline">@viewModel.User.IsOnline"</label></td>
+                    <td>
+                        <input type="hidden" asp-for="@viewModel.Item.Value">
+                        <input class="form-check-input" asp-for="@viewModel.Item.Selected">
+                        <input type="hidden" asp-for="@viewModel.User.Id">
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div>
+        <input type="submit" name="delete" />
+    </div>
+</form>
+
+
