@@ -1,7 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using WebApplication4.Areas.Identity.Data
-@*@model IEnumerable<ApplicationUser>*@
-@model IList<ApplicationUserViewModel>
+@model List<ApplicationUser>
 
 
 @inject SignInManager<ApplicationUser> SignInManager
@@ -9,81 +8,330 @@
 
 @{
     ViewData["Title"] = "Home Page";
-}
+} 
 
 @{
     if (User.Identity.IsAuthenticated)
     {
-        <div class="container p-3">
-            <div class="row pt-4">
-                <div class="col-6"><h2>Таблица Пользователей</h2></div>
-                <div class="col-6 text-end">
-                    <div class="btn-group" role="group" aria-label="Basic example">                    
-                        <a asp-controller="Home" asp-action="Block" class="btn btn-secondary"><i class="bi bi-lock"></i>Блок</a>
-                        <button type="button" class="btn btn-secondary"><i class="bi bi-unlock"></i>Разблокировать</button>
-                        <button type="submit" name="Delete" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Удалить</button>
-                    </div>
+    <div class="container p-3">
+        <div class="row pt-4">
+            <div class="col-6"><h2>Таблица Пользователей</h2></div>
+            <div class="col-6 text-end">
+                <div class="btn-group" role="group" aria-label="Basic example">                    
+                    <button type="button" id="btnBlock" class="btn btn-secondary"><i class="bi bi-lock"></i>Блок</button>
+                    <button type="button" id="btnUnblock" class="btn btn-secondary"><i class="bi bi-unlock"></i>Разблокировать</button>
+                    <button type="button" id="btnDelete" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Удалить</button>
                 </div>
             </div>
         </div>
-        <br/>
-    }
-    //else
-    //{
-    //    <div class="container p-3">
-    //        <div class="row pt-4">
-    //            <div class="col-6"><h2>Таблица Пользователей</h2></div>
-    //            <div class="col-6 text-end">
-    //                <div class="btn-group" role="group" aria-label="Basic example">
-    //                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-lock"></i><a class="nav-link text-dark" href="/Home/Block/"></a>Блок</button>
-    //                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-unlock"></i>Разблокировать</button>
-    //                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-x-circle"></i>Удалить</button>
-    //                </div>
-    //            </div>
-    //        </div>
-    //    </div>
-    //    <br/>    
-    //}
-}
-<form asp-controller="Home" asp-action="DeleteUser" method="post">
-    <table class="table table-hover">
-    <thead>
-    <tr>
-        <th scope="col">ID</th>
-        <th scope="col">Имя пользователя</th>
-        <th scope="col">Email</th>
-        <th scope="col">Дата регистрации</th>
-        <th scope="col">Дата последнего входа</th>
-        <th scope="col">В сети</th>
-        <th scope="col">
-            <input class="form-check-input" onclick="selectAll(this)" type="checkbox" name="allCheck" id="selectedAll">Выбрать все
-        </th>
-    </tr>
-    </thead>
-        <tbody>
-            @foreach(var viewModel in Model)
-            {
-                <tr class="table-active">
-                    <th scope="row" >
-                        <label asp-for="@viewModel.User.Id">@viewModel.User.Id</label>
-                    </th>
-                    <td><label asp-for="@viewModel.User.Name">@viewModel.User.Name</label></td>
-                    <td>@Html.DisplayFor(item => viewModel.User.Email)</td>
-                    <td>@Html.DisplayFor(item => viewModel.User.CreateDateTime)</td>
-                    <td>@Html.DisplayFor(item => viewModel.User.LastLoginDateTime)</td>
-                    <td><label asp-for="@viewModel.User.IsOnline">@viewModel.User.IsOnline"</label></td>
-                    <td>
-                        <input type="hidden" asp-for="@viewModel.Item.Value">
-                        <input class="form-check-input" asp-for="@viewModel.Item.Selected">
-                        <input type="hidden" asp-for="@viewModel.User.Id">
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <div>
-        <input type="submit" name="delete" />
     </div>
-</form>
+    <br/>
+    }
+    else
+    {
+    <div class="container p-3">
+        <div class="row pt-4">
+            <div class="col-6"><h2>Таблица Пользователей</h2></div>
+            <div class="col-6 text-end">
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-lock"></i><a class="nav-link text-dark" href="/Home/Block/"></a>Блок</button>
+                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-unlock"></i>Разблокировать</button>
+                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-x-circle"></i>Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br/>    
+    }
+}
+@using(Html.BeginForm(FormMethod.Post))
+{
+    <table class="table table-hover" id="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Имя пользователя</th>
+                <th scope="col">Email</th>
+                <th scope="col">Дата регистрации</th>
+                <th scope="col">Дата последнего входа</th>
+                <th scope="col">В сети</th>
+                <th scope="col">Статус блока</th>
+                <th>
+                    <input class="form-check-input" onclick="selectAll(this)" type="checkbox" name="allCheck" id="selectedAll">Выбрать все
+                </th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        @for (var i = 0; i < Model.Count; i++)
+        {
+            <tr class="table-active">
+                <td id="Id">@Model[i].Id</td>
+                <td id="Name">@Model[i].Name</td>
+                <td id="Email">@Model[i].Email
+                </td>
+                <td id="CreateDateTime">@Model[i].CreateDateTime
+                </td>
+                <td id="LastLoginDateTime">@Model[i].LastLoginDateTime
+                </td>
+                <td id="IsOnline">
+                    @ApplicationUserViewModel.GetStatusMessage(Model[i].IsOnline)
+                </td>
+                <td id="IsBlocked">
+                    @ApplicationUserViewModel.GetStatusMessage(Model[i].IsBlocked)
+                </td>
+                <td id="Item"><input class="form-check-input" type="checkbox" id="flexCheckDefault"></td>
+            </tr>
+        }
+    </table>
+}
 
+@section Scripts  
+{  
+    <script type="text/javascript">  
+    $(document).ready(function(){
+        $.ajax({
+            url: "@Url.Action("Index", "Home")"
+        });
+    });
+
+    $(function () {   
+
+        $("#btnUnblock").click(function () {    
+            var model = {};
+            model.Id = [];
+            model.Item = [];
+            var rows = document.getElementsByTagName("table")[0].rows;
+            rows = Array.from(rows).slice(1);
+            var boxes = document.querySelectorAll("table input[type='checkbox']");
+            boxes = Array.from(boxes).slice(1);
+            for (var i = 0; i < boxes.length; i++) {
+                if (boxes[i].checked){
+                    var currentRows = rows[i]; 
+                    model.Id.push(currentRows.cells[0].innerHTML);
+                    model.Item.push(boxes[i].checked);
+                }
+            }
+            console.log(model);
+            $.ajax({  
+                type: "POST",  
+                url: '@Url.Action("Unblock")',  
+                data: model,  
+                dataType: "json"
+            }).done(function(){
+                window.location.reload();
+
+            });  
+            return false;  
+        });
+
+
+        $("#btnBlock").click(function () {    
+            var model = {};
+            model.Id = [];
+            model.Item = [];
+            var rows = document.getElementsByTagName("table")[0].rows;
+            rows = Array.from(rows).slice(1);
+            var boxes = document.querySelectorAll("table input[type='checkbox']");
+            boxes = Array.from(boxes).slice(1);
+            for (var i = 0; i < boxes.length; i++) {
+                if (boxes[i].checked){
+                    var currentRows = rows[i]; 
+                    model.Id.push(currentRows.cells[0].innerHTML);
+                    model.Item.push(boxes[i].checked);
+                }
+            }
+            console.log(model);
+            $.ajax({  
+                type: "POST",  
+                url: '@Url.Action("Block")',  
+                data: model,  
+                dataType: "json"
+            }).done(function(){
+                window.location.reload();
+
+            });  
+            return false;  
+        });
+
+ 
+        $("#btnDelete").click(function () {    
+            var model = {};
+            model.Id = [];
+            model.Item = [];
+            var rows = document.getElementsByTagName("table")[0].rows;
+            rows = Array.from(rows).slice(1);
+            var boxes = document.querySelectorAll("table input[type='checkbox']");
+            boxes = Array.from(boxes).slice(1);
+            for (var i = 0; i < boxes.length; i++) {
+                if (boxes[i].checked){
+                    var currentRows = rows[i]; 
+                    model.Id.push(currentRows.cells[0].innerHTML);
+                    model.Item.push(boxes[i].checked);
+                }
+            }
+            console.log(model);
+            $.ajax({  
+                type: "POST",  
+                url: '@Url.Action("Delete")',  
+                data: model,  
+                dataType: "json"
+            }).done(function(){
+                window.location.reload();
+
+            });  
+            return false;  
+        });  
+    });  
+      
+    function LoadData() {  
+        $("#table tbody tr").remove();  
+        $.ajax({  
+            type: 'GET',  
+            url: '@Url.Action("GetUsers")',  
+            dataType: 'json',   
+            success: function (data) {  
+               
+                $.each(data.value, function (i, item) {  
+                    var rows = "<tr class='table-active'>"  
+                    + "<td id='Id'>" + item.id + "</td>"  
+                    + "<td id='Name'>" + item.name + "</td>"  
+                    + "<td id='Email'>" + item.email + "</td>" 
+                    + "<td id='CreateDateTime'>" + item.createDateTime + "</td>"
+                    + "<td id='LastLoginDateTime'>" + item.lastLoginDateTime + "</td>"
+                    + "<td id='IsOnline'>" + item.isOnline + "</td>"
+                    + "<td id='IsBlocked'>" + item.isBlocked + "</td>"
+                    + "<td id='Item'>" + "<input class='form-check-input' type='checkbox' id='flexCheckDefault'>" + "</td>"
+                    + "</tr>";  
+                    $('#table tbody').append(rows);  
+                });  
+            },  
+            error: function (ex) {  
+                var r = jQuery.parseJSON(response.responseText);  
+                alert("Message: " + r.Message);  
+                alert("StackTrace: " + r.StackTrace);  
+                alert("ExceptionType: " + r.ExceptionType);  
+            }  
+        });  
+        return false;  
+    }  
+
+
+    </script>  
+}
+
+@*@section Scripts  
+{  
+    <script type="text/javascript">  
+    //$(function () {   
+    //    $("#btnDelete").click(function () {  
+    //        //alert("");  
+    //        var user = new Object();  
+    //        user.Id =  document.getElementById('Id').innerHTML;  
+    //        user.Name =  document.getElementById('Name').innerHTML 
+    //        console.log(JSON.stringify(user));
+    //        $.ajax({  
+    //            type: "POST",  
+    //            url: '@Url.Action("Delete")',  
+    //            data: JSON.stringify(user),  
+    //            dataType: "json",  
+    //            contentType: "application/json; charset=utf-8",  
+    //            success: function () {  
+    //                alert("Data has been added successfully.");    
+    //            },  
+    //            error: function () {  
+    //                alert("Error while inserting data");  
+    //            }  
+    //        });  
+    //        return false;  
+    //    });  
+    //});  
+    </script>  
+}*@
+
+
+@*@section Scripts  
+{  
+    <script type="text/javascript">   
+
+    //$(function () {   
+    //    $("#btnSave").click(function () {  
+    //        //alert("");  
+    //        //var users = [];
+    //        //var rows = document.getElementsByTagName("table")[0].rows;
+    //        //rows = Array.from(rows).slice(1);
+    //        //for (let i = 0; i < rows.length; i++) {
+    //        //    var currentRows = rows[i];
+    //        //    var cell = currentRows.cells[0]; 
+    //        //    var appUser = {};
+    //        //    appUser.Id = cell.innerHTML; 
+    //        //    cell = currentRows.cells[rows.length - 1]
+    //        //    appUser.Item = cell.innerHTML;
+    //        //    users.push(appUser);
+    //        //} 
+    //        //var id = document.getElementById('Id').innerHTML;
+    //        //var name = document.getElementById('Name').innerHTML;
+    //        //str.Id = id;
+    //        //str.Name = name;
+    //        //std.Name = document.getElementById('Name').innerHTML; 
+    //        //std.Email = document.getElementById('Email').innerHTML;  
+
+    //        var user = {};  
+    //        user.Id =  document.getElementById('Id').innerHTML;  
+    //        user.Name =  document.getElementById('Name').innerHTML;  
+    //        user.Email =  document.getElementById('Email').innerHTML;  
+    //        user.CreateDateTime =  document.getElementById('CreateDateTime').innerHTML;  
+    //        console.log(user.Name);
+    //        console.log(user.Email);
+    //        console.log(user.Id);
+    //        console.log(user.CreateDateTime);
+
+
+
+    //        $.ajax({  
+    //            type: "POST",  
+    //            url: '@Url.Action("Delete")',  
+    //            data: '{user: ' + JSON.stringify(user) + '}',  
+    //            dataType: "json",  
+    //            contentType: "application/json; charset=utf-8",  
+    //            success: function () {  
+    //               alert("Data has been added successfully.");  
+    //            },  
+    //            error: function () {  
+    //                alert("Error while inserting data");  
+    //            }  
+    //        });  
+    //        return false;  
+    //    });  
+    //});  
+      
+    //function LoadData() {  
+    //    $("#tblStudent tbody tr").remove();  
+    //    $.ajax({  
+    //        type: 'POST',  
+    //        url: '@Url.Action("getStudent")',  
+    //        dataType: 'json',  
+    //        data: { id: '' },  
+    //        success: function (data) {  
+    //            var items = '';  
+    //            $.each(data, function (i, item) {  
+    //                var rows = "<tr>"  
+    //                + "<td class='prtoducttd'>" + item.studentID + "</td>"  
+    //                + "<td class='prtoducttd'>" + item.studentName + "</td>"  
+    //                + "<td class='prtoducttd'>" + item.studentAddress + "</td>"  
+    //                + "</tr>";  
+    //                $('#tblStudent tbody').append(rows);  
+    //            });  
+    //        },  
+    //        error: function (ex) {  
+    //            var r = jQuery.parseJSON(response.responseText);  
+    //            alert("Message: " + r.Message);  
+    //            alert("StackTrace: " + r.StackTrace);  
+    //            alert("ExceptionType: " + r.ExceptionType);  
+    //        }  
+    //    });  
+    //    return false;  
+    //}  
+    </script>  
+} 
+*@
 

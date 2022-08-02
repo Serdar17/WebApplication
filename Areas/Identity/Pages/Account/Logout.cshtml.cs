@@ -15,17 +15,20 @@ namespace WebApplication4.Areas.Identity.Pages.Account
 {
     public class LogoutModel : PageModel
     {
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        public readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger<LogoutModel> _logger;
+        private readonly ApplicationDbContext dbContext;
 
-        public LogoutModel(SignInManager<ApplicationUser> signInManager, ILogger<LogoutModel> logger)
+        public LogoutModel(SignInManager<ApplicationUser> signInManager, ILogger<LogoutModel> logger, ApplicationDbContext dbContext)
         {
             _signInManager = signInManager;
             _logger = logger;
+            this.dbContext = dbContext; 
         }
 
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
+            await SetOnlineStatusAsync(User.Identity.Name);
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
             if (returnUrl != null)
@@ -38,6 +41,15 @@ namespace WebApplication4.Areas.Identity.Pages.Account
                 // request and the identity for the user gets updated.
                 return RedirectToPage();
             }
+        }
+
+        private async Task SetOnlineStatusAsync(string email)
+        {
+            
+            var user = dbContext.Users.Find(email);
+            if (user is not null)
+                user.IsOnline = false;
+            await dbContext.SaveChangesAsync();
         }
     }
 }

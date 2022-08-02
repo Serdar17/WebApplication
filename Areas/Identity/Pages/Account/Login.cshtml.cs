@@ -21,12 +21,14 @@ namespace WebApplication4.Areas.Identity.Pages.Account
     public class LoginModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationDbContext dbContext;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger, ApplicationDbContext dbContext)
         {
             _signInManager = signInManager;
             _logger = logger;
+            this.dbContext = dbContext;
         }
 
         /// <summary>
@@ -107,11 +109,21 @@ namespace WebApplication4.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
+            var users = dbContext.Users.ToList();
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+
+                SetOnlineStatus(users);
+                dbContext.SaveChanges();
+
+                var lockUser = users.FirstOrDefault(item => item.Email.Equals(Input.Email));
+                if (lockUser.IsBlocked)
+                {
+                    _logger.LogWarning("User account locked out.");
+                    return RedirectToPage("./Lockout");
+                }
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
@@ -136,6 +148,13 @@ namespace WebApplication4.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        private void SetOnlineStatus(List<ApplicationUser> users)
+        {
+            var user = users.FirstOrDefault(item => item.Email.Equals(Input.Email));
+            if (user is not null && !user.IsBlocked)
+                user.IsOnline = true;
         }
     }
 }
