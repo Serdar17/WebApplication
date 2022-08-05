@@ -34,9 +34,9 @@
             <div class="col-6"><h2>Таблица Пользователей</h2></div>
             <div class="col-6 text-end">
                 <div class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-lock"></i><a class="nav-link text-dark" href="/Home/Block/"></a>Блок</button>
-                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-unlock"></i>Разблокировать</button>
-                    <button type="button" disabled class="btn btn-secondary"><i class="bi bi-x-circle"></i>Удалить</button>
+                    <button type="button" onclick="btnClick()" class="btn btn-secondary"><i class="bi bi-lock"></i><a class="nav-link text-dark" href="/Home/Block/"></a>Блок</button>
+                    <button type="button" onclick="btnClick()" class="btn btn-secondary"><i class="bi bi-unlock"></i>Разблокировать</button>
+                    <button type="button" onclick="btnClick()" class="btn btn-secondary"><i class="bi bi-x-circle"></i>Удалить</button>
                 </div>
             </div>
         </div>
@@ -74,10 +74,10 @@
                 <td id="LastLoginDateTime">@Model[i].LastLoginDateTime
                 </td>
                 <td id="IsOnline">
-                    @ApplicationUserViewModel.GetStatusMessage(Model[i].IsOnline)
+                    @ApplicationManager.GetStatusMessage(Model[i].IsOnline)
                 </td>
                 <td id="IsBlocked">
-                    @ApplicationUserViewModel.GetStatusMessage(Model[i].IsBlocked)
+                    @ApplicationManager.GetStatusMessage(Model[i].IsBlocked)
                 </td>
                 <td id="Item"><input class="form-check-input" type="checkbox" id="flexCheckDefault"></td>
             </tr>
@@ -214,124 +214,7 @@
         });  
         return false;  
     }  
-
-
     </script>  
 }
 
-@*@section Scripts  
-{  
-    <script type="text/javascript">  
-    //$(function () {   
-    //    $("#btnDelete").click(function () {  
-    //        //alert("");  
-    //        var user = new Object();  
-    //        user.Id =  document.getElementById('Id').innerHTML;  
-    //        user.Name =  document.getElementById('Name').innerHTML 
-    //        console.log(JSON.stringify(user));
-    //        $.ajax({  
-    //            type: "POST",  
-    //            url: '@Url.Action("Delete")',  
-    //            data: JSON.stringify(user),  
-    //            dataType: "json",  
-    //            contentType: "application/json; charset=utf-8",  
-    //            success: function () {  
-    //                alert("Data has been added successfully.");    
-    //            },  
-    //            error: function () {  
-    //                alert("Error while inserting data");  
-    //            }  
-    //        });  
-    //        return false;  
-    //    });  
-    //});  
-    </script>  
-}*@
-
-
-@*@section Scripts  
-{  
-    <script type="text/javascript">   
-
-    //$(function () {   
-    //    $("#btnSave").click(function () {  
-    //        //alert("");  
-    //        //var users = [];
-    //        //var rows = document.getElementsByTagName("table")[0].rows;
-    //        //rows = Array.from(rows).slice(1);
-    //        //for (let i = 0; i < rows.length; i++) {
-    //        //    var currentRows = rows[i];
-    //        //    var cell = currentRows.cells[0]; 
-    //        //    var appUser = {};
-    //        //    appUser.Id = cell.innerHTML; 
-    //        //    cell = currentRows.cells[rows.length - 1]
-    //        //    appUser.Item = cell.innerHTML;
-    //        //    users.push(appUser);
-    //        //} 
-    //        //var id = document.getElementById('Id').innerHTML;
-    //        //var name = document.getElementById('Name').innerHTML;
-    //        //str.Id = id;
-    //        //str.Name = name;
-    //        //std.Name = document.getElementById('Name').innerHTML; 
-    //        //std.Email = document.getElementById('Email').innerHTML;  
-
-    //        var user = {};  
-    //        user.Id =  document.getElementById('Id').innerHTML;  
-    //        user.Name =  document.getElementById('Name').innerHTML;  
-    //        user.Email =  document.getElementById('Email').innerHTML;  
-    //        user.CreateDateTime =  document.getElementById('CreateDateTime').innerHTML;  
-    //        console.log(user.Name);
-    //        console.log(user.Email);
-    //        console.log(user.Id);
-    //        console.log(user.CreateDateTime);
-
-
-
-    //        $.ajax({  
-    //            type: "POST",  
-    //            url: '@Url.Action("Delete")',  
-    //            data: '{user: ' + JSON.stringify(user) + '}',  
-    //            dataType: "json",  
-    //            contentType: "application/json; charset=utf-8",  
-    //            success: function () {  
-    //               alert("Data has been added successfully.");  
-    //            },  
-    //            error: function () {  
-    //                alert("Error while inserting data");  
-    //            }  
-    //        });  
-    //        return false;  
-    //    });  
-    //});  
-      
-    //function LoadData() {  
-    //    $("#tblStudent tbody tr").remove();  
-    //    $.ajax({  
-    //        type: 'POST',  
-    //        url: '@Url.Action("getStudent")',  
-    //        dataType: 'json',  
-    //        data: { id: '' },  
-    //        success: function (data) {  
-    //            var items = '';  
-    //            $.each(data, function (i, item) {  
-    //                var rows = "<tr>"  
-    //                + "<td class='prtoducttd'>" + item.studentID + "</td>"  
-    //                + "<td class='prtoducttd'>" + item.studentName + "</td>"  
-    //                + "<td class='prtoducttd'>" + item.studentAddress + "</td>"  
-    //                + "</tr>";  
-    //                $('#tblStudent tbody').append(rows);  
-    //            });  
-    //        },  
-    //        error: function (ex) {  
-    //            var r = jQuery.parseJSON(response.responseText);  
-    //            alert("Message: " + r.Message);  
-    //            alert("StackTrace: " + r.StackTrace);  
-    //            alert("ExceptionType: " + r.ExceptionType);  
-    //        }  
-    //    });  
-    //    return false;  
-    //}  
-    </script>  
-} 
-*@
 

@@ -119,6 +119,7 @@ namespace WebApplication4.Areas.Identity.Pages.Account
             {
                 var user = CreateUser();;
                 user.Name = Input.Name;
+                user.LastLoginDateTime = DateTime.Now;
                 user.IsOnline = true;
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);

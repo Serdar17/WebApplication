@@ -45,8 +45,7 @@ namespace WebApplication4.Areas.Identity.Pages.Account
 
         private async Task SetOnlineStatusAsync(string email)
         {
-            
-            var user = dbContext.Users.Find(email);
+            var user = dbContext.Users.FirstOrDefault(item => item.Email.Equals(email));
             if (user is not null)
                 user.IsOnline = false;
             await dbContext.SaveChangesAsync();

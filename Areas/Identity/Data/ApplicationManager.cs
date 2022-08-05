@@ -5,17 +5,59 @@ using Microsoft.Owin;
 
 namespace WebApplication4.Areas.Identity.Data
 {
-    public class ApplicationManager /*: UserManager<ApplicationUser>*/
+    public class ApplicationManager : IApplicationUserManager
     {
-        //public ApplicationManager(IUserStore<ApplicationUser> store) : base(store)
-        //{
-        //}
-        //public static ApplicationManager Create(IdentityFactoryOptions<ApplicationManager> options,
-        //IOwinContext context)
-        //{
-        //    var db = context.Get<ApplicationDbContext>();
-        //    ApplicationManager manager = new ApplicationManager(new UserStore<ApplicationUser>(db));
-        //    return manager;
-        //}
+        private readonly ApplicationDbContext dbContext;
+        private readonly UserManager<ApplicationUser> userManager;
+
+        public ApplicationManager(ApplicationDbContext dbContext)
+        {
+            this.dbContext = dbContext;           // this.userManager = userManager;
+        }
+
+        public async Task DeleteUsersAsync(ApplicationUserViewModel model)
+        {
+            var users = new List<ApplicationUser>();
+            foreach (var id in model.Id)
+            {
+                var user = await userManager.FindByIdAsync(id);
+                if (user is not null)
+                {
+                    await userManager.DeleteAsync(user);
+                    await userManager.ResetAuthenticatorKeyAsync(user);
+                }
+            }
+        }
+
+        public IEnumerable<ApplicationUser> Get() => dbContext.Users;
+
+        public ApplicationUser Get(string id)
+        {
+            return Get().FirstOrDefault(user => user.Id.Equals(id, StringComparison.Ordinal));
+        }
+
+        public async Task SetLockValueAsync(bool lockValue, ApplicationUserViewModel model)
+        {
+            var applicationUsers = Get();
+            foreach (var id in model.Id)
+            {
+                var user = applicationUsers.FirstOrDefault(item => item.Id.Equals(id));
+                user.IsBlocked = lockValue;
+                await userManager.ResetAuthenticatorKeyAsync(user);
+            }
+            dbContext.SaveChanges();
+        }
+
+        public void SetOnlineStatus(ApplicationUserViewModel model)
+        {
+            foreach (var id in model.Id)
+            {
+                var user = Get(id);
+                if (user is not null)
+                    user.IsOnline = false;
+            }
+        }
+
+        public static string GetStatusMessage(bool status) => status ? "Да" : "Нет";
     }
 }

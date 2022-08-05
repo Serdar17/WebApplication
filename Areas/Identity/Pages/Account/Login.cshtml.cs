@@ -115,18 +115,17 @@ namespace WebApplication4.Areas.Identity.Pages.Account
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
 
-                SetOnlineStatus(users);
-                dbContext.SaveChanges();
-
                 var lockUser = users.FirstOrDefault(item => item.Email.Equals(Input.Email));
-                if (lockUser.IsBlocked)
+                if (lockUser is not null && lockUser.IsBlocked)
                 {
                     _logger.LogWarning("User account locked out.");
                     return RedirectToPage("./Lockout");
                 }
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, false);
                 if (result.Succeeded)
                 {
+                    SetOnlineStatus(users);
+                    dbContext.SaveChanges();
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }
@@ -154,7 +153,11 @@ namespace WebApplication4.Areas.Identity.Pages.Account
         {
             var user = users.FirstOrDefault(item => item.Email.Equals(Input.Email));
             if (user is not null && !user.IsBlocked)
+            {
                 user.IsOnline = true;
+                user.LastLoginDateTime = DateTime.Now;
+            }
+
         }
     }
 }

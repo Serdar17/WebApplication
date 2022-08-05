@@ -13,7 +13,6 @@ namespace WebApplication4.Controllers
     {
         private UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
-        private readonly LogoutModel logout;
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext dbContext;
 
@@ -28,26 +27,15 @@ namespace WebApplication4.Controllers
         {
             var users = dbContext.Users.ToList();
             var user = users.FirstOrDefault(item => item.Email.Equals(User.Identity.Name));
+            if (user is not null && user.IsBlocked)
+                signInManager.SignOutAsync();
             if (User.Identity.IsAuthenticated && user is not null)
                 return View(users);
             if (user is null)
-            {
                 signInManager.SignOutAsync();
-            }
             return View(users);
         }
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public ActionResult LogOff()
-        //{
-            
-        //    IAuthenticationManager AuthenticationManager = HttpContext.GetOwinContext().Authentication;
-
-        //    AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-
-        //    return RedirectToAction("login");
-        //}
 
         public IActionResult Privacy()
         {
@@ -55,18 +43,21 @@ namespace WebApplication4.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Block(ApplicationUserModel model)
+        public async Task<IActionResult> Block(ApplicationUserViewModel model)
         {
-            await SingOutUser();
-            SetOnlineStatus();
-            SetLockValue(true, model);
+            if (model.IsValid())
+            {
+                await SetOnlineStatusAsync(model);
+                SetLockValue(true, model);
+            }
             return new JsonResult(Ok());
         }
 
         [HttpPost]
-        public IActionResult Unblock(ApplicationUserModel model)
+        public IActionResult Unblock(ApplicationUserViewModel model)
         {
-            SetLockValue(false, model);
+            if (model.IsValid())
+                SetLockValue(false, model);
             return new JsonResult(Ok());
         }
 
@@ -78,36 +69,27 @@ namespace WebApplication4.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(ApplicationUserModel model)
+        public async Task<IActionResult> Delete(ApplicationUserViewModel model)
         {
-            var userId = User.Identity.Name;
-            ////var deletedUsers = new List<ApplicationUser>();
-            if(model.Id.Length > 0)
+            if (model.IsValid())
             {
                 await DeleteUsersAsync(model);
-                //foreach (var id in model.Id)
-                //    deletedUsers.Add(dbContext.Users.ToList().FirstOrDefault(item => item.Id.Equals(id)));
-                //dbContext.Users.RemoveRange(deletedUsers);
-                //dbContext.SaveChanges();
             }
-            // return RedirectToAction("Index");
             return new JsonResult(Ok());
-        } 
+        }
 
-        private async Task DeleteUsersAsync(ApplicationUserModel model)
+        private async Task DeleteUsersAsync(ApplicationUserViewModel model)
         {
-            var users = new List<ApplicationUser>();
             foreach (var id in model.Id)
             {
-                
                 var user = await userManager.FindByIdAsync(id);
                 if (user is not null)
                 {
                     await userManager.DeleteAsync(user);
-                    await SingOutUser();
-                    //await userManager.ResetAuthenticatorKeyAsync(user);
+                    if (User.Identity.Name.Equals(user.Email))
+                        await SingOutUser();
+                    await userManager.ResetAuthenticatorKeyAsync(user);
                 }
-                    
             }
         }
 
@@ -116,15 +98,25 @@ namespace WebApplication4.Controllers
             if (User.Identity.IsAuthenticated)
                 await signInManager.SignOutAsync();
         }
-        
-        private void SetOnlineStatus()
+
+        private async Task SetOnlineStatusAsync(ApplicationUserViewModel model)
         {
-            var user = dbContext.Users.FirstOrDefault(item => item.Email.Equals(User.Identity.Name));
-            if (user is not null)
-                user.IsOnline = false;
+            foreach (var id in model.Id)
+            {
+                var user = await userManager.FindByIdAsync(id);
+                if (user is not null)
+                {
+                    user.IsOnline = false;
+                    if (User.Identity.Name.Equals(user.Email))
+                        await SingOutUser();
+                }
+            }
+            //var user = dbContext.Users.FirstOrDefault(item => item.Email.Equals(User.Identity.Name));
+            //if (user is not null)
+            //    user.IsOnline = false;
         }
 
-        private void SetLockValue(bool isBlocked, ApplicationUserModel model)
+        private void SetLockValue(bool isBlocked, ApplicationUserViewModel model)
         {
             var applicationUsers = dbContext.Users;
             foreach (var id in model.Id)
@@ -135,7 +127,7 @@ namespace WebApplication4.Controllers
             dbContext.SaveChanges();
         }
 
-		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });

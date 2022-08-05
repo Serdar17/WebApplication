@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using System.Web.Mvc;
 
 namespace WebApplication4.Areas.Identity.Data
 {
     public class ApplicationUserViewModel
     {
-		public ApplicationUser User { get; set; }
+        public string[] Id { get; set; }
+        
+        public SelectListItem[] Item  { get; set; }
 
-		public SelectListItem Item { get; set; }
-
-        public static string GetStatusMessage(bool status) => status ? "Да" : "Нет";
+        public bool IsValid() => Id is not null && Id.Length > 0;
     }
 }

@@ -10,3 +10,7 @@ function selectAll(btn) {
         boxes[i].checked = value;
     }
 }
+
+function btnClick() {
+    alert("Необходимо зарегистрироваться для редактирования таблицы");
+}
