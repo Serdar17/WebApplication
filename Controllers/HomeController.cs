@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-//using Microsoft.AspNet.Identity.Owin;
 using Microsoft.AspNetCore.Identity.UI.V4.Pages.Account.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Owin.Security;
@@ -23,16 +22,17 @@ namespace WebApplication4.Controllers
             this.userManager = userManager;
             signInManager = signIn;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var users = dbContext.Users.ToList();
             var user = users.FirstOrDefault(item => item.Email.Equals(User.Identity.Name));
-            if (user is not null && user.IsBlocked)
-                signInManager.SignOutAsync();
-            if (User.Identity.IsAuthenticated && user is not null)
+            if (!User.Identity.IsAuthenticated)
                 return View(users);
-            if (user is null)
-                signInManager.SignOutAsync();
+            if (user is null || User.Identity.IsAuthenticated && user.IsBlocked)
+            {
+                await signInManager.SignOutAsync();
+                return RedirectToAction("Index");
+            }
             return View(users);
         }
 
@@ -45,6 +45,8 @@ namespace WebApplication4.Controllers
         [HttpPost]
         public async Task<IActionResult> Block(ApplicationUserViewModel model)
         {
+            if (IsActive())
+                return Redirect("/Identity/Account/Login");
             if (model.IsValid())
             {
                 await SetOnlineStatusAsync(model);
@@ -54,8 +56,10 @@ namespace WebApplication4.Controllers
         }
 
         [HttpPost]
-        public IActionResult Unblock(ApplicationUserViewModel model)
+        public async Task<IActionResult> Unblock(ApplicationUserViewModel model)
         {
+            if (IsActive())
+                return RedirectToAction("Index");
             if (model.IsValid())
                 SetLockValue(false, model);
             return new JsonResult(Ok());
@@ -71,10 +75,10 @@ namespace WebApplication4.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(ApplicationUserViewModel model)
         {
+            if (IsActive())
+                return RedirectToAction("Index");
             if (model.IsValid())
-            {
                 await DeleteUsersAsync(model);
-            }
             return new JsonResult(Ok());
         }
 
@@ -88,7 +92,6 @@ namespace WebApplication4.Controllers
                     await userManager.DeleteAsync(user);
                     if (User.Identity.Name.Equals(user.Email))
                         await SingOutUser();
-                    await userManager.ResetAuthenticatorKeyAsync(user);
                 }
             }
         }
@@ -97,6 +100,12 @@ namespace WebApplication4.Controllers
         {
             if (User.Identity.IsAuthenticated)
                 await signInManager.SignOutAsync();
+        }
+
+        private bool IsActive()
+        {
+            var user = dbContext.Users.ToList().FirstOrDefault(item => item.Email.Equals(User.Identity.Name));
+            return user is null || user.IsBlocked;
         }
 
         private async Task SetOnlineStatusAsync(ApplicationUserViewModel model)
@@ -111,9 +120,6 @@ namespace WebApplication4.Controllers
                         await SingOutUser();
                 }
             }
-            //var user = dbContext.Users.FirstOrDefault(item => item.Email.Equals(User.Identity.Name));
-            //if (user is not null)
-            //    user.IsOnline = false;
         }
 
         private void SetLockValue(bool isBlocked, ApplicationUserViewModel model)

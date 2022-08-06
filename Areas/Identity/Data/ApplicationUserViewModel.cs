@@ -9,5 +9,7 @@ namespace WebApplication4.Areas.Identity.Data
         public SelectListItem[] Item  { get; set; }
 
         public bool IsValid() => Id is not null && Id.Length > 0;
+
+        public static string GetStatusMessage(bool status) => status ? "Да" : "Нет";
     }
 }

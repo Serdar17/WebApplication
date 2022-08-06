@@ -74,10 +74,10 @@
                 <td id="LastLoginDateTime">@Model[i].LastLoginDateTime
                 </td>
                 <td id="IsOnline">
-                    @ApplicationManager.GetStatusMessage(Model[i].IsOnline)
+                    @ApplicationUserViewModel.GetStatusMessage(Model[i].IsOnline)
                 </td>
                 <td id="IsBlocked">
-                    @ApplicationManager.GetStatusMessage(Model[i].IsBlocked)
+                    @ApplicationUserViewModel.GetStatusMessage(Model[i].IsBlocked)
                 </td>
                 <td id="Item"><input class="form-check-input" type="checkbox" id="flexCheckDefault"></td>
             </tr>
